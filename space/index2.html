@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serec's Space Game</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            overflow: hidden;
+        }
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #gameCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border: 1px solid #fff;
+            filter: grayscale(50%) brightness(50%);
+            transition: all 0.5s ease;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+        #audioControl {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+        #muteButton {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+        #muteButton svg {
+            width: 100%;
+            height: 100%;
+        }
+        #playButton {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #playButton:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        #playButton::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-left: 35px solid #fff;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+        <div id="overlay">
+            <div id="playButton"></div>
+        </div>
+    </div>
+    <div id="audioControl">
+        <button id="muteButton">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+        </button>
+    </div>
+    <script src="game.js"></script>
+    <script>
+        const playButton = document.getElementById('playButton');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const overlay = document.getElementById('overlay');
+        const muteButton = document.getElementById('muteButton');
+        const muteIcon = muteButton.querySelector('svg');
+        let audioElement = new Audio('https://usa9.fastcast4u.com/proxy/jamz?mp=/1');
+        audioElement.volume = 1;
+        audioElement.loop = true;
+
+        // Initialize the game in a paused state
+        initGame();
+
+        playButton.addEventListener('click', startGame);
+
+        function initGame() {
+            // Add your game initialization code here
+            // But don't start the game loop yet
+            // For example: setupGameObjects();
+        }
+
+        function startGame() {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+            gameCanvas.style.filter = 'none';
+            audioElement.play().catch(e => console.error("Error playing audio:", e));
+            // Start your game loop here
+            // For example: startGameLoop();
+        }
+
+        muteButton.addEventListener('click', () => {
+            if (audioElement.muted) {
+                audioElement.muted = false;
+                muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+            } else {
+                audioElement.muted = true;
+                muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+            }
+        });
+    </script>
+</body>
+</html>
