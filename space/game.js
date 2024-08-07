@@ -15,20 +15,7 @@ let loadedStars = [];
 const canvas = document.getElementById('gameCanvas');
 const renderer = new Renderer(canvas);
 
-// Add loading bar element
-const loadingBar = document.createElement('div');
-loadingBar.id = 'loadingBar';
-loadingBar.style.width = '0%';
-loadingBar.style.height = '20px';
-loadingBar.style.backgroundColor = 'green';
-loadingBar.style.position = 'absolute';
-loadingBar.style.top = '50%';
-loadingBar.style.left = '0';
-loadingBar.style.display = 'none';
-document.body.appendChild(loadingBar);
-
 async function initGame() {
-    showLoadingBar();
     let starmap = await loadStarmap();
     if (!starmap) {
         console.log('No starmap found. Generating new starmap...');
@@ -42,7 +29,6 @@ async function initGame() {
     });
 
     console.log(`Initialized ${stars.length} stars from starmap.`);
-    hideLoadingBar();
 }
 
 function gameLoop(timestamp) {
@@ -70,23 +56,6 @@ function renderGame() {
     const transformedBodies = transformAndFilterCelestialBodies(stars, loadedStars, player.position, player.orientation);
     renderer.renderBodies(transformedBodies, frameCounter);
     frameCounter++;
-}
-
-window.addEventListener('starmapLoadingProgress', (event) => {
-    const progress = event.detail;
-    updateLoadingBar(progress);
-});
-
-function updateLoadingBar(progress) {
-    loadingBar.style.width = `${progress}%`;
-}
-
-function showLoadingBar() {
-    loadingBar.style.display = 'block';
-}
-
-function hideLoadingBar() {
-    loadingBar.style.display = 'none';
 }
 
 const keys = initializeControls();
