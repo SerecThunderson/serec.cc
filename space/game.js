@@ -15,16 +15,12 @@ let loadedStars = [];
 const canvas = document.getElementById('gameCanvas');
 const renderer = new Renderer(canvas);
 
-let isLoading = true;
-let loadingProgress = 0;
-
 async function initGame() {
-    updateLoadingBar(0);
-    let starmap = await loadStarmap(updateLoadingBar);
+    let starmap = await loadStarmap();
     if (!starmap) {
         console.log('No starmap found. Generating new starmap...');
-        starmap = await generateStarmap(updateLoadingBar);
-        await saveStarmapToFile(starmap);
+        starmap = generateStarmap();
+        saveStarmapToFile(starmap);
         console.log('New starmap generated and saved. Please upload the starmap.json file to your server.');
     }
 
@@ -33,52 +29,11 @@ async function initGame() {
     });
 
     console.log(`Initialized ${stars.length} stars from starmap.`);
-    isLoading = false;
-}
-
-function updateLoadingBar(progress) {
-    loadingProgress = progress;
-    renderLoadingBar();
-}
-
-function renderLoadingBar() {
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear the canvas
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, width, height);
-
-    // Draw the loading bar
-    const barWidth = width * 0.8;
-    const barHeight = height * 0.1;
-    const barX = (width - barWidth) / 2;
-    const barY = (height - barHeight) / 2;
-
-    // Draw the outline
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(barX, barY, barWidth, barHeight);
-
-    // Draw the fill
-    ctx.fillStyle = 'white';
-    ctx.fillRect(barX, barY, barWidth * loadingProgress, barHeight);
-
-    // Draw the text
-    ctx.fillStyle = 'white';
-    ctx.font = '20px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Loading: ${Math.round(loadingProgress * 100)}%`, width / 2, barY + barHeight + 30);
 }
 
 function gameLoop(timestamp) {
-    if (isLoading) {
-        renderLoadingBar();
-    } else {
-        updateGame();
-        renderGame();
-    }
+    updateGame();
+    renderGame();
     requestAnimationFrame(gameLoop);
 }
 
