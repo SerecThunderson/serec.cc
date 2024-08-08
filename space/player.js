@@ -2,6 +2,7 @@ import { lerp, Vec3, Quat } from './utils.js';
 
 export class Player {
     constructor() {
+		this.id = null;
         this.position = new Vec3(0, 0, 0);
         this.currentSpeed = 0;
         this.maxSpeed = 3333;
@@ -79,6 +80,58 @@ export class Player {
         this.position = this.position.add(forward.mul(this.currentSpeed))
                                      .add(right.mul(this.strafeSpeed))
                                      .add(up.mul(this.upDownSpeed));
+    }
+}
+
+export class OtherPlayer {
+    constructor(id, position, orientation) {
+        this.id = id;
+        this.position = new Vec3(position.x, position.y, position.z);
+        this.orientation = new Quat(orientation.w, orientation.x, orientation.y, orientation.z);
+        this.color = (parseInt(this.id, 16) % 360);
+        this.vertices = this.generateVertices();
+    }
+
+    update(position, orientation) {
+        this.position = new Vec3(position.x, position.y, position.z);
+        this.orientation = new Quat(orientation.w, orientation.x, orientation.y, orientation.z);
+    }
+
+    generateColor() {
+        // Generate a fixed color based on the player's ID
+        return (parseInt(this.id, 16) % 360); // Use the ID to generate a hue
+    }
+
+    generateVertices() {
+        const scale = 1000; // Adjust this value to change the size of the ship
+        const length = 2; // Length of the ship
+        const width = 1; // Width of the ship
+
+        return [
+            new Vec3(0, 0, length).mul(scale),  // Nose
+            new Vec3(width, 0, 0).mul(scale),   // Right
+            new Vec3(0, width, 0).mul(scale),   // Top
+            new Vec3(-width, 0, 0).mul(scale),  // Left
+            new Vec3(0, -width, 0).mul(scale),  // Bottom
+            new Vec3(0, 0, 0).mul(scale)        // Flat back
+        ];
+    }
+
+    getFaces() {
+        return [
+            [0, 1, 2], // Nose, Right, Top
+            [0, 2, 3], // Nose, Top, Left
+            [0, 3, 4], // Nose, Left, Bottom
+            [0, 4, 1], // Nose, Bottom, Right
+            [5, 1, 2], // Back, Right, Top
+            [5, 2, 3], // Back, Top, Left
+            [5, 3, 4], // Back, Left, Bottom
+            [5, 4, 1]  // Back, Bottom, Right
+        ];
+    }
+
+    getTransformedVertices() {
+        return this.vertices.map(v => this.orientation.rotate(v).add(this.position));
     }
 }
 

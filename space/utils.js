@@ -11,6 +11,13 @@ export class Vec3 {
     length() { return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z); }
     lengthSquared() { return this.x * this.x + this.y * this.y + this.z * this.z; }
     normalize() { const len = this.length(); return len > 0 ? this.mul(1 / len) : new Vec3(0, 0, 0); }
+    cross(v) { 
+        return new Vec3(
+            this.y * v.z - this.z * v.y,
+            this.z * v.x - this.x * v.z,
+            this.x * v.y - this.y * v.x
+        );
+    }
 }
 
 export class Quat {

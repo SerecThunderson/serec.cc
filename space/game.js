@@ -1,8 +1,9 @@
 import { Debug } from './debug.js';
 import { Vec3 } from './utils.js';
 import { Renderer } from './renderer.js';
-import { Player, initializeControls, createRollingBuffer } from './player.js';
+import { Player, OtherPlayer, initializeControls, createRollingBuffer } from './player.js';
 import { STARFIELD_SIZE, initStar, updateLoadedStars, transformAndFilterCelestialBodies, loadStarmap, generateStarmap, saveStarmapToFile } from './celestial.js';
+import { NetworkManager } from './network.js';
 
 const debug = new Debug();
 debug.enable();
@@ -11,9 +12,28 @@ const player = new Player();
 const rollingBuffer = createRollingBuffer();
 const stars = [];
 let loadedStars = [];
+const otherPlayers = new Map();
 
 const canvas = document.getElementById('gameCanvas');
 const renderer = new Renderer(canvas);
+
+const networkManager = new NetworkManager(
+    'ws://145.14.158.182:8080',
+    player,
+    (id, position, orientation) => {
+        const newPlayer = new OtherPlayer(id, position, orientation);
+        otherPlayers.set(id, newPlayer);
+    },
+    (id, position, orientation) => {
+        const player = otherPlayers.get(id);
+        if (player) {
+            player.update(position, orientation);
+        }
+    },
+    (id) => {
+        otherPlayers.delete(id);
+    }
+);
 
 async function initGame() {
     let starmap = await loadStarmap();
@@ -55,6 +75,25 @@ function renderGame() {
     renderer.clearCanvas();
     const transformedBodies = transformAndFilterCelestialBodies(stars, loadedStars, player.position, player.orientation);
     renderer.renderBodies(transformedBodies, frameCounter);
+
+    // Sort other players by distance from the player
+    const sortedOtherPlayers = Array.from(otherPlayers.values()).sort((a, b) => {
+        const distA = a.position.sub(player.position).lengthSquared();
+        const distB = b.position.sub(player.position).lengthSquared();
+        return distB - distA; // Sort in descending order
+    });
+
+    // Render other players
+    sortedOtherPlayers.forEach(otherPlayer => {
+        const transformedVertices = otherPlayer.getTransformedVertices();
+        const relativeVertices = transformedVertices.map(v => {
+            const relativePos = v.sub(player.position);
+            // Apply player's orientation to get the correct relative position
+            return player.orientation.inverse().rotate(relativePos);
+        });
+        renderer.renderOtherPlayer(relativeVertices, otherPlayer.getFaces(), otherPlayer.color);
+    });
+
     frameCounter++;
 }
 
