@@ -18,7 +18,7 @@ const canvas = document.getElementById('gameCanvas');
 const renderer = new Renderer(canvas);
 
 const networkManager = new NetworkManager(
-    'wss://145.14.158.182:8080',
+    'wss://ws.serec.cc:8443',
     player,
     (id, position, orientation) => {
         const newPlayer = new OtherPlayer(id, position, orientation);
