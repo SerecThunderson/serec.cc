@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Serec's Space Game</title>
     <style>
         body, html {
@@ -15,6 +15,7 @@
             align-items: center;
             background-color: #000;
             overflow: hidden;
+            touch-action: none;
         }
         #gameContainer {
             position: relative;
@@ -87,6 +88,39 @@
             border-left: 35px solid #fff;
             margin-left: 10px;
         }
+        
+        /* Mobile Joystick Styles */
+        .joystick-container {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: none;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .joystick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+        
+        .joystick-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40%;
+            height: 40%;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -112,7 +146,7 @@
         const muteButton = document.getElementById('muteButton');
         const muteIcon = muteButton.querySelector('svg');
         let audioElement = new Audio('https://usa9.fastcast4u.com/proxy/jamz?mp=/1');
-        audioElement.volume = 1;
+        audioElement.volume = 0.7;
         audioElement.loop = true;
 
         // Initialize the game in a paused state
@@ -123,7 +157,6 @@
         function initGame() {
             // Add your game initialization code here
             // But don't start the game loop yet
-            // For example: setupGameObjects();
         }
 
         function startGame() {
@@ -133,8 +166,8 @@
             }, 500);
             gameCanvas.style.filter = 'none';
             audioElement.play().catch(e => console.error("Error playing audio:", e));
-            // Start your game loop here
-            // For example: startGameLoop();
+            
+            // The game loop will be started from game.js
         }
 
         muteButton.addEventListener('click', () => {
