@@ -4,6 +4,7 @@ import { Renderer } from './renderer.js';
 import { Player, OtherPlayer, initializeControls, createRollingBuffer } from './player.js';
 import { STARFIELD_SIZE, initStar, updateLoadedStars, transformAndFilterCelestialBodies, loadStarmap, generateStarmap, saveStarmapToFile } from './celestial.js';
 import { NetworkManager } from './network.js';
+import { MobileControls } from './mobile.js';
 
 const debug = new Debug();
 debug.enable();
@@ -16,7 +17,10 @@ const otherPlayers = new Map();
 
 const canvas = document.getElementById('gameCanvas');
 const renderer = new Renderer(canvas);
+const keys = initializeControls();
+let mobileControls;
 
+// Network manager setup
 const networkManager = new NetworkManager(
     'wss://ws.serec.cc:8443',
     player,
@@ -35,6 +39,21 @@ const networkManager = new NetworkManager(
     }
 );
 
+let frameCounter = 0;
+
+// Initialize mobile controls when game starts
+document.addEventListener('DOMContentLoaded', () => {
+    const playButton = document.getElementById('playButton');
+    if (playButton) {
+        playButton.addEventListener('click', onGameStart);
+    }
+});
+
+function onGameStart() {
+    // Initialize mobile controls after game starts
+    mobileControls = new MobileControls(keys);
+}
+
 async function initGame() {
     let starmap = await loadStarmap();
     if (!starmap) {
@@ -43,11 +62,11 @@ async function initGame() {
         saveStarmapToFile(starmap);
         console.log('New starmap generated and saved. Please upload the starmap.json file to your server.');
     }
-
+    
     starmap.forEach(starData => {
         stars.push(initStar(starData));
     });
-
+    
     console.log(`Initialized ${stars.length} stars from starmap.`);
 }
 
@@ -73,16 +92,18 @@ function wrapPlayerPosition() {
 
 function renderGame() {
     renderer.clearCanvas();
+    
+    // Render celestial bodies
     const transformedBodies = transformAndFilterCelestialBodies(stars, loadedStars, player.position, player.orientation);
     renderer.renderBodies(transformedBodies, frameCounter);
-
+    
     // Sort other players by distance from the player
     const sortedOtherPlayers = Array.from(otherPlayers.values()).sort((a, b) => {
         const distA = a.position.sub(player.position).lengthSquared();
         const distB = b.position.sub(player.position).lengthSquared();
         return distB - distA; // Sort in descending order
     });
-
+    
     // Render other players
     sortedOtherPlayers.forEach(otherPlayer => {
         const transformedVertices = otherPlayer.getTransformedVertices();
@@ -93,12 +114,9 @@ function renderGame() {
         });
         renderer.renderOtherPlayer(relativeVertices, otherPlayer.getFaces(), otherPlayer.color);
     });
-
+    
     frameCounter++;
 }
-
-const keys = initializeControls();
-let frameCounter = 0;
 
 // Initialize the game and start the game loop
 initGame().then(() => {
