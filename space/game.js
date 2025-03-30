@@ -27,10 +27,10 @@ const renderer = new Renderer(canvas);
 const chatInput = document.getElementById('chatInput');
 const chatDisplay = document.getElementById('chatDisplay');
 const playerListDisplay = document.getElementById('playerListDisplay');
-const chatFocusButton = document.getElementById('chatFocusButton'); // Get chat focus button
+const chatFocusButton = document.getElementById('chatFocusButton');
 
 const keys = initializeControls();
-let mobileControls;
+let mobileControls; // Will be instantiated on game start if mobile
 
 // --- Helper Function to Update Selected Player ---
 function setSelectedPlayer(id) {
@@ -58,25 +58,19 @@ const networkManager = new NetworkManager( 'wss://ws.serec.cc:8443', player,
         if (id === player.id) return;
         const other = otherPlayers.get(id);
         if (other) { other.update(position, orientation); }
-        else { // Create if unknown
-            const newPlayer = new OtherPlayer(id, position, orientation);
-            otherPlayers.set(id, newPlayer);
-            addGlobalChatMessage(null, `Player ${id.substring(0, 4)} appeared.`);
-            updatePlayerListDisplay();
-        }
+        else { const newPlayer = new OtherPlayer(id, position, orientation); otherPlayers.set(id, newPlayer); addGlobalChatMessage(null, `Player ${id.substring(0, 4)} appeared.`); updatePlayerListDisplay(); }
     },
     // onPlayerDisconnect
     (id) => {
         if (otherPlayers.has(id)) {
-            const shortId = id.substring(0, 4);
-            otherPlayers.delete(id);
+            const shortId = id.substring(0, 4); otherPlayers.delete(id);
             addGlobalChatMessage(null, `Player ${shortId} left.`);
             if (selectedPlayerId === id) setSelectedPlayer(null);
             updatePlayerListDisplay();
         }
     },
     // onChatMessage (FROM SERVER)
-    (id, message) => { if (id !== player.id) handleChatMessageFromServer(id, message); }
+    (id, message) => { if (id !== player.id) handleChatMessageFromServer(id, message); } // Ignore self echo
 );
 
 // --- Chat Handling ---
@@ -94,6 +88,7 @@ function addGlobalChatMessage(playerId, message) {
 
 // --- HTML UI Updates ---
 function updateChatDisplay() {
+    if (!chatDisplay) return; // Guard against element not found
     chatDisplay.innerHTML = '';
     globalChatHistory.forEach(msg => {
         const p = document.createElement('p');
@@ -102,8 +97,7 @@ function updateChatDisplay() {
         if (msg.id && msg.id !== 'System') {
             idSpan.className = 'chat-id'; idSpan.textContent = `[${shortId}]:`;
             idSpan.title = `Click to select ${shortId}`;
-            idSpan.onclick = (e) => {
-                 e.stopPropagation();
+            idSpan.onclick = () => { // Removed stopPropagation here
                 if (otherPlayers.has(msg.id) || msg.id === player.id) setSelectedPlayer(msg.id);
                 else addGlobalChatMessage(null, `Player ${shortId} no longer available.`);
             };
@@ -113,17 +107,18 @@ function updateChatDisplay() {
         chatDisplay.appendChild(p);
     });
     chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    // console.log("Updating chat display HTML:", chatDisplay.innerHTML); // Debug log
 }
 
 function updatePlayerListDisplay() {
-     if (!playerListDisplay) return;
+     if (!playerListDisplay) return; // Guard against element not found
      playerListDisplay.innerHTML = '';
      const selfDiv = document.createElement('div');
      selfDiv.textContent = `You (${player.id ? player.id.substring(0, 4) : '...'})`;
      selfDiv.className = 'self';
-     if (selectedPlayerId === null) { /* Highlight self if no target? */ }
+     if (selectedPlayerId === null) { /* Style self if no target? */ }
      selfDiv.title = 'Click to deselect target';
-     selfDiv.onclick = (e) => { e.stopPropagation(); setSelectedPlayer(null); };
+     selfDiv.onclick = () => setSelectedPlayer(null); // Removed stopPropagation here
      playerListDisplay.appendChild(selfDiv);
      otherPlayers.forEach(p => {
           const playerDiv = document.createElement('div');
@@ -131,9 +126,10 @@ function updatePlayerListDisplay() {
           playerDiv.textContent = `P: ${shortId}`;
           playerDiv.title = `Click to select ${shortId}`;
           if (p.id === selectedPlayerId) playerDiv.classList.add('selected');
-          playerDiv.onclick = (e) => { e.stopPropagation(); setSelectedPlayer(p.id); };
+          playerDiv.onclick = () => setSelectedPlayer(p.id); // Removed stopPropagation here
           playerListDisplay.appendChild(playerDiv);
      });
+     // console.log("Updating player list HTML:", playerListDisplay.innerHTML); // Debug log
 }
 
 // --- Chat Input Handling ---
@@ -148,22 +144,36 @@ chatInput.addEventListener('keydown', (e) => {
             }
             chatInput.value = '';
         }
-        chatInput.blur(); // Unfocus after sending
+        chatInput.blur();
     }
-    // Allow typing in chat without triggering game controls
+    // Prevent game controls ONLY when typing in input
      e.stopPropagation();
 });
 
-// Listener for the new Chat Focus Button
+// Listener for the Chat Focus Button (mainly for mobile)
 if (chatFocusButton) {
     chatFocusButton.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent potential game interactions
+        // e.stopPropagation(); // Might not be needed here
         chatInput.focus();
     });
 }
 
-// Global key listeners (removed 'Enter to focus' logic)
-// window.addEventListener('keydown', (e) => { ... }); // Keep if other global keys needed
+// --- Global Key Listener (Restore Enter to Focus for Desktop) ---
+window.addEventListener('keydown', (e) => {
+    // If Enter pressed AND chat isn't focused AND game is running
+    if (e.key === 'Enter' && document.activeElement !== chatInput && isGameRunning) {
+         // Only activate this behavior if mobile controls are NOT running
+         // (mobile uses the button)
+         if (!mobileControls || !mobileControls.isMobile) {
+             console.log("Desktop 'Enter' detected, focusing chat.");
+              e.preventDefault(); // Prevent potential default form actions
+              chatInput.focus();
+         }
+    }
+    // Note: Keydown events for movement (WASD, Arrows) are implicitly handled
+    // by the initializeControls function and read directly in player.update
+});
+// --- End Global Key Listener ---
 
 
 // Remove old chat bubbles
@@ -185,7 +195,7 @@ async function initGame() {
     starmap.forEach(starData => { stars.push(initStar(starData)); });
     console.log(`Initialized ${stars.length} stars.`);
     addGlobalChatMessage(null, "Starmap initialized.");
-    updatePlayerListDisplay();
+    updatePlayerListDisplay(); // Initial display
 }
 
 let animationFrameId = null;
@@ -199,9 +209,11 @@ function gameLoop(timestamp) {
 }
 
 function updateGame() {
+    // This check correctly prevents player movement updates if chat is focused,
+    // regardless of whether input comes from keyboard or mobile controls via 'keys' object
     if (document.activeElement !== chatInput) {
         player.update(keys, rollingBuffer);
-    } else { // Reset keys/decay speeds if chat is focused
+    } else { // Reset/decay speeds if chat is focused
          keys.arrowup = false; keys.arrowdown = false; keys.arrowleft = false; keys.arrowright = false;
          keys.a = false; keys.d = false; keys.w = false; keys.s = false; keys.q = false; keys.e = false;
          player.currentSpeed = lerp(player.currentSpeed, 0, 0.1);
@@ -231,17 +243,14 @@ function renderGame() {
     renderer.clearCanvas();
     const transformedBodies = transformAndFilterCelestialBodies(stars, loadedStars, player.position, player.orientation);
     renderer.renderBodies(transformedBodies, frameCounter);
-
     let navigatorTargetPos = null;
      if (selectedPlayerId) {
           const targetPlayer = otherPlayers.get(selectedPlayerId);
           if (targetPlayer) navigatorTargetPos = targetPlayer.position;
      }
-
     const sortedOtherPlayers = Array.from(otherPlayers.values()).sort((a, b) =>
         b.position.sub(player.position).lengthSquared() - a.position.sub(player.position).lengthSquared()
     );
-
     sortedOtherPlayers.forEach(otherPlayer => {
         const relativePosRaw = otherPlayer.position.sub(player.position);
         if (relativePosRaw.lengthSquared() > renderer.farPlane * renderer.farPlane * 1.1) return;
@@ -249,12 +258,9 @@ function renderGame() {
         const relativeVertices = transformedVertices.map(v => player.orientation.inverse().rotate(v.sub(player.position)));
         renderer.renderOtherPlayer(relativeVertices, otherPlayer.getFaces(), otherPlayer.color, otherPlayer.id, chatBubbles);
     });
-
     renderer.renderUI(
-        selectedPlayerId, // Pass ID for potential future use in renderer UI
-        navigatorTargetPos ? navigatorTargetPos.sub(player.position) : null,
-        player.orientation,
-        frameCounter
+        selectedPlayerId, navigatorTargetPos ? navigatorTargetPos.sub(player.position) : null,
+        player.orientation, frameCounter
     );
     frameCounter++;
 }
@@ -267,8 +273,8 @@ window.addEventListener('startgame', () => {
      console.log('Start game event received.');
      isGameRunning = true;
      // Initialize Mobile Controls AFTER game start signal
-     mobileControls = new MobileControls(keys); // Initializes if mobile
-     console.log("Mobile controls initialized:", mobileControls);
+     mobileControls = new MobileControls(keys);
+     console.log("Mobile controls initialized:", mobileControls, "Is mobile?", mobileControls.isMobile);
      // Initialize game assets and state
      initGame().then(() => {
          console.log('Game initialized. Starting game loop...');
