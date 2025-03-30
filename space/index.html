@@ -9,7 +9,7 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
             background-color: #000; overflow: hidden; font-family: sans-serif;
-            touch-action: none; /* Prevent default body touch actions */
+            touch-action: none;
         }
         #gameContainer {
             position: relative; width: 100%; height: 100%;
@@ -26,75 +26,66 @@
             justify-content: center; align-items: center; transition: all 0.5s ease;
             z-index: 10;
         }
-        #audioControl {
-            position: absolute; top: 10px; right: 10px; z-index: 20;
-        }
+        #audioControl { position: absolute; top: 10px; right: 10px; z-index: 20; }
         #muteButton { background: none; border: none; cursor: pointer; padding: 0; width: 24px; height: 24px; }
         #muteButton svg { width: 100%; height: 100%; }
         #playButton {
-            width: 100px; height: 100px; border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2); border: 2px solid #fff;
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            width: 100px; height: 100px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff; display: flex; justify-content: center; align-items: center; cursor: pointer;
             transition: all 0.3s ease;
         }
         #playButton:hover { background-color: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
         #playButton::after {
-            content: ''; width: 0; height: 0; border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent; border-left: 35px solid #fff; margin-left: 10px;
+            content: ''; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent;
+            border-left: 35px solid #fff; margin-left: 10px;
         }
 
         /* --- Chat UI Styles --- */
         #chatContainer {
             position: absolute; bottom: 10px; left: 10px; width: 300px; max-height: 150px;
-            display: flex; flex-direction: column; z-index: 15;
-            touch-action: auto; /* Allow touch interactions within chat */
+            display: flex; flex-direction: column; z-index: 15; touch-action: auto;
         }
         #chatDisplay {
-            background-color: rgba(0, 0, 0, 0.5); color: white; padding: 5px;
-            font-size: 12px; overflow-y: auto; flex-grow: 1; margin-bottom: 5px;
-            border-radius: 3px; scrollbar-width: none; -ms-overflow-style: none;
+            background-color: rgba(0, 0, 0, 0.5); color: white; padding: 5px; font-size: 12px;
+            overflow-y: auto; flex-grow: 1; margin-bottom: 5px; border-radius: 3px;
+            scrollbar-width: none; -ms-overflow-style: none;
         }
         #chatDisplay::-webkit-scrollbar { display: none; }
         #chatDisplay p { margin: 2px 0; word-wrap: break-word; }
         #chatDisplay .chat-id { cursor: pointer; font-weight: bold; color: #aaa; text-decoration: none; margin-right: 3px; }
         #chatDisplay .chat-id:hover { text-decoration: underline; }
-
-        /* Chat Input Area Flex Container */
-        #chatInputArea {
-             display: flex;
-             gap: 5px; /* Space between input and button */
-        }
-
+        #chatInputArea { display: flex; gap: 5px; }
         #chatInput {
-            flex-grow: 1; /* Input takes available space */
-            background-color: rgba(50, 50, 50, 0.7); color: white; border: 1px solid #666;
+            flex-grow: 1; background-color: rgba(50, 50, 50, 0.7); color: white; border: 1px solid #666;
             padding: 5px; font-size: 13px; outline: none; border-radius: 3px;
         }
         #chatInput:focus { border-color: #aaa; }
-
-        /* NEW Chat Focus Button */
         #chatFocusButton {
-             flex-shrink: 0; /* Prevent button from shrinking */
-             padding: 5px 8px;
-             font-size: 12px;
-             background-color: rgba(80, 80, 80, 0.7);
-             color: white;
-             border: 1px solid #666;
-             border-radius: 3px;
-             cursor: pointer;
+             flex-shrink: 0; padding: 5px 8px; font-size: 12px; background-color: rgba(80, 80, 80, 0.7);
+             color: white; border: 1px solid #666; border-radius: 3px; cursor: pointer;
         }
-        #chatFocusButton:hover {
-             background-color: rgba(100, 100, 100, 0.8);
-        }
+        #chatFocusButton:hover { background-color: rgba(100, 100, 100, 0.8); }
 
 
         /* --- Player List Styles --- */
         #playerListContainer {
-            position: absolute; top: 10px; right: 40px; width: 150px; max-height: 200px;
-            background-color: rgba(0, 0, 0, 0.5); color: white; padding: 8px; font-size: 11px;
-            border-radius: 3px; z-index: 15; overflow-y: auto; scrollbar-width: none;
+            /* Base styles for desktop and default */
+            position: absolute;
+            top: 10px;
+            right: 40px;
+            width: 150px; /* Default width */
+            max-height: 200px; /* Default max height */
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 8px;
+            font-size: 11px; /* Default font size */
+            border-radius: 3px;
+            z-index: 15;
+            overflow-y: auto;
+            scrollbar-width: none;
             -ms-overflow-style: none;
-            touch-action: auto; /* Allow touch interactions */
+            touch-action: auto;
+            display: block; /* Ensure it's visible by default */
         }
         #playerListContainer::-webkit-scrollbar { display: none; }
         #playerListContainer h4 { margin: 0 0 5px 0; font-size: 12px; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 3px; }
@@ -106,8 +97,7 @@
         /* --- Mobile Joystick Styles --- */
         .joystick-container {
             position: absolute; width: 120px; height: 120px; display: none;
-            z-index: 9; /* Below UI overlays */
-            pointer-events: none; border-radius: 50%; user-select: none;
+            z-index: 9; pointer-events: none; border-radius: 50%; user-select: none;
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
         }
         .joystick-base {
@@ -122,29 +112,21 @@
         }
 
         /* --- Responsive Adjustments --- */
-        @media (max-width: 768px) { /* Adjust breakpoint as needed */
-            #chatContainer {
-                width: 250px; /* Slightly narrower chat */
-                max-height: 120px;
-            }
+        @media (max-width: 768px) {
+            #chatContainer { width: 250px; max-height: 120px; }
             #playerListContainer {
-                 width: 110px; /* Narrower player list */
+                 width: 110px; /* Narrower on mobile */
                  font-size: 10px; /* Smaller font */
-                 max-height: 180px; /* Allow slightly more height if narrow */
-                 right: 10px; /* Move away from edge/audio button a bit more */
-                 top: 40px; /* Move below audio button */
+                 max-height: 180px;
+                 right: 10px;
+                 top: 40px;
             }
             #playerListContainer h4 { font-size: 11px; }
-
-             /* Make joysticks slightly smaller on mobile if desired */
-            /* .joystick-container { width: 100px; height: 100px; } */
-            /* .joystick-handle { width: 45px; height: 45px; } */
         }
-
-         @media (max-width: 480px) { /* Even smaller screens */
+         @media (max-width: 480px) {
              #chatContainer { width: 200px; }
              #playerListContainer { width: 90px; }
-             #chatFocusButton { padding: 4px 6px; font-size: 11px;} /* Smaller button */
+             #chatFocusButton { padding: 4px 6px; font-size: 11px;}
          }
 
     </style>
@@ -156,10 +138,13 @@
         <div id="chatContainer">
             <div id="chatDisplay"></div>
             <div id="chatInputArea">
-                 <input type="text" id="chatInput" placeholder="Chat..."> <button id="chatFocusButton">Chat</button> </div>
+                 <input type="text" id="chatInput" placeholder="Chat...">
+                 <button id="chatFocusButton">Chat</button>
+            </div>
         </div>
         <div id="playerListContainer">
-            <h4>Players</h4> <div id="playerListDisplay"></div>
+            <h4>Players</h4>
+            <div id="playerListDisplay"></div>
         </div>
     </div>
     <div id="audioControl">
