@@ -6,179 +6,201 @@
     <title>Serec's Space Game</title>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #000;
-            overflow: hidden;
-            touch-action: none;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background-color: #000; overflow: hidden; font-family: sans-serif;
+            touch-action: none; /* Prevent default body touch actions */
         }
         #gameContainer {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
         }
         #gameCanvas {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border: 1px solid #fff;
-            filter: grayscale(50%) brightness(50%);
-            transition: all 0.5s ease;
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            border: 1px solid #fff; filter: grayscale(50%) brightness(50%);
+            transition: filter 0.5s ease;
         }
         #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.5s ease;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); display: flex;
+            justify-content: center; align-items: center; transition: all 0.5s ease;
+            z-index: 10;
         }
         #audioControl {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
+            position: absolute; top: 10px; right: 10px; z-index: 20;
         }
-        #muteButton {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-        }
-        #muteButton svg {
-            width: 100%;
-            height: 100%;
-        }
+        #muteButton { background: none; border: none; cursor: pointer; padding: 0; width: 24px; height: 24px; }
+        #muteButton svg { width: 100%; height: 100%; }
         #playButton {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
-            border: 2px solid #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
+            width: 100px; height: 100px; border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2); border: 2px solid #fff;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
             transition: all 0.3s ease;
         }
-        #playButton:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
+        #playButton:hover { background-color: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
         #playButton::after {
-            content: '';
-            width: 0;
-            height: 0;
-            border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent;
-            border-left: 35px solid #fff;
-            margin-left: 10px;
+            content: ''; width: 0; height: 0; border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent; border-left: 35px solid #fff; margin-left: 10px;
         }
-        
-        /* Mobile Joystick Styles */
+
+        /* --- Chat UI Styles --- */
+        #chatContainer {
+            position: absolute; bottom: 10px; left: 10px; width: 300px; max-height: 150px;
+            display: flex; flex-direction: column; z-index: 15;
+            touch-action: auto; /* Allow touch interactions within chat */
+        }
+        #chatDisplay {
+            background-color: rgba(0, 0, 0, 0.5); color: white; padding: 5px;
+            font-size: 12px; overflow-y: auto; flex-grow: 1; margin-bottom: 5px;
+            border-radius: 3px; scrollbar-width: none; -ms-overflow-style: none;
+        }
+        #chatDisplay::-webkit-scrollbar { display: none; }
+        #chatDisplay p { margin: 2px 0; word-wrap: break-word; }
+        #chatDisplay .chat-id { cursor: pointer; font-weight: bold; color: #aaa; text-decoration: none; margin-right: 3px; }
+        #chatDisplay .chat-id:hover { text-decoration: underline; }
+
+        /* Chat Input Area Flex Container */
+        #chatInputArea {
+             display: flex;
+             gap: 5px; /* Space between input and button */
+        }
+
+        #chatInput {
+            flex-grow: 1; /* Input takes available space */
+            background-color: rgba(50, 50, 50, 0.7); color: white; border: 1px solid #666;
+            padding: 5px; font-size: 13px; outline: none; border-radius: 3px;
+        }
+        #chatInput:focus { border-color: #aaa; }
+
+        /* NEW Chat Focus Button */
+        #chatFocusButton {
+             flex-shrink: 0; /* Prevent button from shrinking */
+             padding: 5px 8px;
+             font-size: 12px;
+             background-color: rgba(80, 80, 80, 0.7);
+             color: white;
+             border: 1px solid #666;
+             border-radius: 3px;
+             cursor: pointer;
+        }
+        #chatFocusButton:hover {
+             background-color: rgba(100, 100, 100, 0.8);
+        }
+
+
+        /* --- Player List Styles --- */
+        #playerListContainer {
+            position: absolute; top: 10px; right: 40px; width: 150px; max-height: 200px;
+            background-color: rgba(0, 0, 0, 0.5); color: white; padding: 8px; font-size: 11px;
+            border-radius: 3px; z-index: 15; overflow-y: auto; scrollbar-width: none;
+            -ms-overflow-style: none;
+            touch-action: auto; /* Allow touch interactions */
+        }
+        #playerListContainer::-webkit-scrollbar { display: none; }
+        #playerListContainer h4 { margin: 0 0 5px 0; font-size: 12px; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 3px; }
+        #playerListContainer div { padding: 2px 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #playerListContainer div:hover { background-color: rgba(255, 255, 255, 0.1); }
+        #playerListContainer div.selected { font-weight: bold; color: #FFD700; }
+        #playerListContainer div.self { color: #afa; }
+
+        /* --- Mobile Joystick Styles --- */
         .joystick-container {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            display: none;
-            z-index: 10;
-            pointer-events: none;
+            position: absolute; width: 120px; height: 120px; display: none;
+            z-index: 9; /* Below UI overlays */
+            pointer-events: none; border-radius: 50%; user-select: none;
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
         }
-        
         .joystick-base {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            pointer-events: none;
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            background-color: rgba(128, 128, 128, 0.2); border: 2px solid rgba(255, 255, 255, 0.2);
+            box-sizing: border-box;
         }
-        
         .joystick-handle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40%;
-            height: 40%;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transform: translate(-50%, -50%);
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; border-radius: 50%;
+            background-color: rgba(200, 200, 200, 0.4); border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%); box-sizing: border-box;
         }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) { /* Adjust breakpoint as needed */
+            #chatContainer {
+                width: 250px; /* Slightly narrower chat */
+                max-height: 120px;
+            }
+            #playerListContainer {
+                 width: 110px; /* Narrower player list */
+                 font-size: 10px; /* Smaller font */
+                 max-height: 180px; /* Allow slightly more height if narrow */
+                 right: 10px; /* Move away from edge/audio button a bit more */
+                 top: 40px; /* Move below audio button */
+            }
+            #playerListContainer h4 { font-size: 11px; }
+
+             /* Make joysticks slightly smaller on mobile if desired */
+            /* .joystick-container { width: 100px; height: 100px; } */
+            /* .joystick-handle { width: 45px; height: 45px; } */
+        }
+
+         @media (max-width: 480px) { /* Even smaller screens */
+             #chatContainer { width: 200px; }
+             #playerListContainer { width: 90px; }
+             #chatFocusButton { padding: 4px 6px; font-size: 11px;} /* Smaller button */
+         }
+
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
-        <div id="overlay">
-            <div id="playButton"></div>
+        <div id="overlay"> <div id="playButton"></div> </div>
+        <div id="chatContainer">
+            <div id="chatDisplay"></div>
+            <div id="chatInputArea">
+                 <input type="text" id="chatInput" placeholder="Chat..."> <button id="chatFocusButton">Chat</button> </div>
+        </div>
+        <div id="playerListContainer">
+            <h4>Players</h4> <div id="playerListDisplay"></div>
         </div>
     </div>
     <div id="audioControl">
         <button id="muteButton">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon> <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path> </svg>
         </button>
     </div>
     <script type="module" src="game.js"></script>
     <script>
-        const playButton = document.getElementById('playButton');
-        const gameCanvas = document.getElementById('gameCanvas');
-        const overlay = document.getElementById('overlay');
-        const muteButton = document.getElementById('muteButton');
-        const muteIcon = muteButton.querySelector('svg');
-        let audioElement = new Audio('https://usa9.fastcast4u.com/proxy/jamz?mp=/1');
-        audioElement.volume = 0.7;
-        audioElement.loop = true;
-
-        // Initialize the game in a paused state
-        initGame();
-
-        playButton.addEventListener('click', startGame);
-
-        function initGame() {
-            // Add your game initialization code here
-            // But don't start the game loop yet
-        }
-
-        function startGame() {
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 500);
-            gameCanvas.style.filter = 'none';
-            audioElement.play().catch(e => console.error("Error playing audio:", e));
-            
-            // The game loop will be started from game.js
-        }
-
-        muteButton.addEventListener('click', () => {
-            if (audioElement.muted) {
-                audioElement.muted = false;
-                muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
-            } else {
-                audioElement.muted = true;
-                muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
-            }
-        });
+        // Inline script remains the same
+         const playButton = document.getElementById('playButton');
+         const gameCanvas = document.getElementById('gameCanvas');
+         const overlay = document.getElementById('overlay');
+         const muteButton = document.getElementById('muteButton');
+         const muteIcon = muteButton.querySelector('svg');
+         const chatInput = document.getElementById('chatInput');
+         let audioElement = new Audio('https://usa9.fastcast4u.com/proxy/jamz?mp=/1');
+         audioElement.volume = 0.7;
+         audioElement.loop = true;
+         let gameStarted = false;
+         playButton.addEventListener('click', startGame);
+         chatInput.addEventListener('focus', () => { console.log("Chat focused"); });
+         chatInput.addEventListener('blur', () => { console.log("Chat blurred"); });
+         function startGame() {
+             if (gameStarted) return;
+             gameStarted = true;
+             overlay.style.opacity = '0';
+             setTimeout(() => { overlay.style.display = 'none'; }, 500);
+             gameCanvas.style.filter = 'none';
+             audioElement.play().catch(e => console.error("Error playing audio:", e));
+             window.dispatchEvent(new CustomEvent('startgame'));
+         }
+         muteButton.addEventListener('click', () => {
+             if (audioElement.muted) {
+                 audioElement.muted = false;
+                 muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+             } else {
+                 audioElement.muted = true;
+                 muteIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+             }
+         });
     </script>
 </body>
 </html>
